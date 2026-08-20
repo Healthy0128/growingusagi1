@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#f8efe8" />
+<title>ふわもちラビット</title>
+<style>
+:root{
+  --bg:#f8efe8; --panel:#fffaf7; --ink:#5c4740; --muted:#8f7770; --accent:#ff9db3; --accent2:#ffd3a8;
+  --good:#8bcf9b; --warn:#f5c163; --danger:#ec8a8a; --line:#efdfd6; --shadow:0 12px 35px rgba(121,79,64,.12);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;background:linear-gradient(#fceeea,#f8efe8 35%,#efe4dc);color:var(--ink)}
+body{overscroll-behavior:none}
+button{font:inherit;color:inherit}
+img{max-width:100%;display:block}
+#app{max-width:760px;margin:0 auto;min-height:100dvh;padding:calc(env(safe-area-inset-top) + 10px) 12px calc(env(safe-area-inset-bottom) + 92px)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{font-weight:800;font-size:20px;letter-spacing:.02em}
+.coin{background:linear-gradient(180deg,#fff8e7,#fff0cf);border:1px solid #f1dfb2;padding:8px 12px;border-radius:999px;box-shadow:var(--shadow);font-weight:800;border:none;position:relative}
+.coin.ready::after{content:"🎁";position:absolute;right:-6px;top:-8px;font-size:16px;animation:giftBounce 1.2s ease-in-out infinite}
+.room{position:relative;height:56dvh;min-height:400px;max-height:640px;border-radius:28px;overflow:hidden;box-shadow:var(--shadow);margin-top:10px;border:1px solid rgba(255,255,255,.8);background:#eadfd8}
+.room-bg{position:absolute;inset:0;background-size:cover;background-position:center bottom;transition:opacity .35s ease, filter .35s ease}
+.time-tint,.weather-layer,.sparkle-layer,.ambient-layer{position:absolute;inset:0;pointer-events:none}
+.ambient-layer{z-index:1;overflow:hidden}
+.ambient{position:absolute;border-radius:50%;opacity:.42;animation:ambientFloat linear infinite}
+.ambient.dot{background:rgba(255,255,255,.55);box-shadow:0 0 10px rgba(255,255,255,.3)}
+.ambient.heart::before{content:"💗";font-size:16px;display:block;filter:drop-shadow(0 2px 2px rgba(255,255,255,.3))}
+.time-tint.morning{background:linear-gradient(rgba(255,245,220,.07),rgba(255,238,216,.08))}
+.time-tint.day{background:linear-gradient(rgba(255,255,255,.03),rgba(255,255,255,.02))}
+.time-tint.evening{background:linear-gradient(rgba(255,176,126,.15),rgba(255,214,170,.12))}
+.time-tint.night{background:linear-gradient(rgba(38,54,89,.42),rgba(23,32,59,.18))}
+.time-tint.late_night{background:linear-gradient(rgba(22,35,69,.58),rgba(16,26,49,.28))}
+.window{position:absolute;left:7.1%;top:8.1%;width:26.8%;height:22.5%;overflow:hidden;border-radius:16px}
+.outside-view{width:100%;height:100%;background-image:url("assets/packed/outside.webp");background-size:600% 100%;background-repeat:no-repeat;transition:transform .4s ease, filter .4s ease}
+.room.weather-cloudy #outsideView{filter:saturate(.9) brightness(.93)}
+.room.weather-rainy #outsideView{filter:saturate(.92) brightness(.84)}
+.room.weather-snowy #outsideView{filter:saturate(.9) brightness(.97)}
+.room.weather-star #outsideView{filter:brightness(.72) saturate(1.05)}
+.weather-layer.rain{background-image:linear-gradient(transparent 0 15%,rgba(181,212,255,.2) 15% 16%,transparent 16% 100%);
+ background-size:10px 18px; animation:rainMove .9s linear infinite; opacity:.55}
+.weather-layer.snow{background-image:radial-gradient(circle,rgba(255,255,255,.95) 0 1.5px,transparent 1.6px);
+ background-size:24px 24px; animation:snowMove 10s linear infinite; opacity:.75}
+.weather-layer.sparkle{background-image:radial-gradient(circle at 20% 30%,rgba(255,255,255,.6) 0 2px,transparent 2.2px),radial-gradient(circle at 70% 45%,rgba(255,255,255,.5) 0 1.5px,transparent 1.7px),radial-gradient(circle at 85% 20%,rgba(255,255,255,.35) 0 2px,transparent 2.2px);animation:twinkle 2.2s ease-in-out infinite alternate}
+.bunny-stage{position:absolute;left:0;right:0;bottom:10%;height:47%;display:flex;justify-content:center;align-items:flex-end}
+.bunny-aura{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:190px;height:170px;border-radius:50%;background:radial-gradient(circle at 50% 45%,rgba(255,230,242,.85),rgba(255,230,242,.18) 55%,transparent 70%);filter:blur(12px);opacity:.9;transition:.35s ease;z-index:0}
+.nameplate{position:absolute;left:50%;top:6px;transform:translateX(-50%);padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.8);box-shadow:0 8px 20px rgba(121,79,64,.12);font-weight:800;font-size:13px;color:#8d6b64;z-index:3;white-space:nowrap}
+.bunny-wrap:hover .nameplate{transform:translateX(-50%) translateY(-2px)}
+
+.bunny-wrap{position:relative;width:280px;height:270px;touch-action:none;user-select:none;display:flex;align-items:flex-end;justify-content:center}
+.bunny-shadow{position:absolute;bottom:10px;width:160px;height:28px;border-radius:50%;background:rgba(80,56,49,.15);filter:blur(6px);transition:transform .3s ease,opacity .3s ease}
+.bunny-img{position:relative;width:220px;height:220px;background-image:url("assets/packed/bunny-master.webp");background-size:contain;background-position:center bottom;background-repeat:no-repeat;filter:drop-shadow(0 12px 10px rgba(0,0,0,.08));animation:breathe 2.8s ease-in-out infinite;transform-origin:center bottom;transition:transform .18s ease, filter .2s ease;will-change:transform}
+.bunny-wrap.sprite-playing .bunny-img{animation:none}
+.bunny-wrap.petting .bunny-img{transform:scale(1.035) rotate(-1deg)}
+.bunny-wrap.happy .bunny-img{animation:happyBounce .55s ease 2}
+.bunny-wrap.jump .bunny-img{animation:jumpPop .6s ease 1}
+.bunny-wrap.sleepy .bunny-img{filter:drop-shadow(0 12px 10px rgba(0,0,0,.08)) saturate(.86);transform:translateY(8px) scale(.98)}
+.bunny-wrap.surprised .bunny-img{transform:translateY(-6px) scale(1.02)}
+.bunny-wrap.playing .bunny-img{animation:playHop .8s ease 2}
+.bunny-prop{position:absolute;left:52%;bottom:92px;transform:translateX(-50%);font-size:42px;opacity:0;pointer-events:none}
+.bunny-wrap.show-prop .bunny-prop{opacity:1;animation:propPop .7s ease}
+.speech{position:absolute;left:50%;top:4.5%;transform:translateX(-50%);background:rgba(255,255,255,.93);padding:10px 14px;border-radius:18px;box-shadow:var(--shadow);font-weight:700;opacity:0;transition:.25s;max-width:72%;text-align:center;z-index:3}
+.speech.show{opacity:1;transform:translateX(-50%) translateY(4px)}
+.room-chipbar{position:absolute;left:10px;top:10px;display:flex;gap:6px;z-index:4}
+.room-chip{background:rgba(255,255,255,.86);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.75);border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800;box-shadow:var(--shadow)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.stat{background:linear-gradient(180deg,rgba(255,250,247,.96),rgba(255,250,247,.88));border:1px solid rgba(255,255,255,.9);border-radius:18px;padding:10px;box-shadow:var(--shadow)}
+.stat .lbl{font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+.bar{height:8px;background:#eadfd8;border-radius:99px;overflow:hidden;margin-top:6px}
+.fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#ffb0c3,#ff8faa);transition:width .5s ease}
+.fill.energy{background:linear-gradient(90deg,#a8dcae,#75c78f)}
+.fill.clean{background:linear-gradient(90deg,#a9d7ff,#7fb7ed)}
+.actions{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 10px);transform:translateX(-50%);width:min(740px,calc(100% - 20px));display:grid;grid-template-columns:repeat(5,1fr);gap:8px;background:rgba(255,250,247,.93);padding:10px;border-radius:24px;box-shadow:0 14px 40px rgba(78,49,39,.18);backdrop-filter:blur(14px);z-index:30}
+.action{border:0;border-radius:18px;padding:10px 4px;background:linear-gradient(180deg,#fff,#fff6fb);box-shadow:0 8px 16px rgba(0,0,0,.06);font-size:12px;font-weight:700}
+.action:active{transform:scale(.94)}
+.action .ico{display:block;font-size:22px;margin-bottom:4px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.08))}
+.modal{position:fixed;inset:0;background:rgba(60,43,37,.35);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.modal.show{display:flex}
+.sheet{width:min(760px,100%);max-height:84dvh;overflow:auto;background:#fffaf7;border-radius:28px 28px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom) + 24px);box-shadow:0 -20px 50px rgba(0,0,0,.16)}
+.sheet h2{margin:0 0 12px}
+.close{float:right;border:0;background:#f0e6df;border-radius:999px;width:36px;height:36px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.card{background:linear-gradient(180deg,#fff,#fffaf8);border:1px solid #eee2db;border-radius:20px;padding:12px;box-shadow:0 8px 22px rgba(0,0,0,.05)}
+.card button{width:100%;border:0;border-radius:12px;padding:9px;background:#ffe1e8;margin-top:8px}
+.card .subbtn{background:#f3ece7}
+.mission{display:flex;justify-content:space-between;gap:10px;padding:10px;border-bottom:1px solid #eee3dc}
+.tag{display:inline-block;font-size:11px;background:#f3eae4;padding:3px 7px;border-radius:999px;margin:2px}
+.small{font-size:12px;color:var(--muted)}
+.choice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.choice{position:relative;border:1px solid var(--line);border-radius:14px;padding:6px;background:#fff;overflow:hidden}
+.choice.current{outline:2px solid #ffb5c6}
+.choice.locked{opacity:.45;filter:grayscale(.2)}
+.choice img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px}
+.choice button{margin-top:6px;border:0;border-radius:10px;padding:8px;background:#f9e6eb;width:100%}
+.choice .cap{font-size:12px;font-weight:700;margin-top:6px}
+.furniture-layer{position:absolute;inset:0;pointer-events:none;z-index:2}
+.furniture-item{position:absolute;filter:drop-shadow(0 4px 4px rgba(0,0,0,.12));user-select:none;animation:wiggleSoft 3.5s ease-in-out infinite}
+.furniture-item.tunnel{font-size:62px}
+.furniture-item.plant,.furniture-item.lamp{font-size:40px}
+.furniture-item.cushion{font-size:58px}
+.furniture-item.ball,.furniture-item.plush{font-size:34px}
+.furniture-item.book{font-size:30px}
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 14px);transform:translate(-50%,-20px);opacity:0;background:#5b4741;color:white;padding:10px 14px;border-radius:999px;z-index:80;transition:.25s;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.mini-area{height:300px;background:#e7f2ff;border-radius:18px;position:relative;overflow:hidden}
+.carrot{position:absolute;font-size:32px;cursor:pointer;user-select:none}.score{font-size:30px;font-weight:800;text-align:center;margin:10px}
+.heart,.spark{position:absolute;pointer-events:none;animation:floatUp 1s ease-out forwards;font-size:24px;z-index:10}
+@keyframes breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.018)}}
+@keyframes happyBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
+@keyframes jumpPop{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-30px) scale(1.02)}100%{transform:translateY(0) scale(1)}}
+@keyframes playHop{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-20px) rotate(-5deg)}60%{transform:translateY(-8px) rotate(5deg)}}
+@keyframes propPop{0%{transform:translateX(-50%) translateY(8px) scale(.6);opacity:0}25%{opacity:1}100%{transform:translateX(-50%) translateY(-8px) scale(1.05);opacity:0}}
+@keyframes floatUp{0%{opacity:0;transform:translate(-50%,8px) scale(.7)}25%{opacity:1}100%{opacity:0;transform:translate(-50%,-70px) scale(1.25)}}
+@keyframes rainMove{from{background-position:0 0}to{background-position:0 18px}}
+@keyframes snowMove{from{background-position:0 0}to{background-position:0 150px}}
+@keyframes twinkle{from{opacity:.28}to{opacity:.75}}
+@keyframes ambientFloat{from{transform:translateY(115%) translateX(0) rotate(0deg)}to{transform:translateY(-20%) translateX(18px) rotate(12deg)}}
+@keyframes giftBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes wiggleSoft{0%,100%{transform:rotate(0deg)}50%{transform:rotate(4deg)}}
+@media(max-width:540px){.grid{grid-template-columns:1fr}.choice-grid{grid-template-columns:1fr 1fr}.room{height:52dvh;min-height:380px}.bunny-wrap{transform:scale(.92)}.window{left:7.4%;top:8.2%;width:27%;height:22.2%}.action{font-size:11px}.action .ico{font-size:20px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="brand">🐰 ふわもちラビット</div>
+    <button class="coin" id="coinBtn">🪙 <span id="coins">0</span></button>
+  </div>
+
+  <div class="room weather-sunny" id="room">
+    <div class="room-bg" id="roomBg"></div>
+    <div class="time-tint" id="timeTint"></div>
+    <div class="window"><div id="outsideView" class="outside-view" aria-label="そとの景色"></div></div>
+    <div class="weather-layer" id="weatherLayer"></div>
+    <div class="ambient-layer" id="ambientLayer"></div>
+    <div class="furniture-layer" id="furnitureLayer"></div>
+    <div class="room-chipbar">
+      <div class="room-chip" id="roomThemeChip">おへや</div>
+      <div class="room-chip" id="weatherChip">はれ</div>
+      <div class="room-chip" id="timeChip">ひる</div>
+    </div>
+    <div class="speech" id="speech">きょうもきてくれた！</div>
+    <div class="bunny-stage">
+      <div class="bunny-wrap" id="petArea" aria-label="うさぎをなでる">
+        <div class="nameplate" id="nameplate">もち</div>
+        <div class="bunny-aura" id="bunnyAura"></div>
+        <div class="bunny-shadow" id="bunnyShadow"></div>
+        <div class="bunny-img" id="bunnyImg" role="img" aria-label="ふわもちうさぎ"></div>
+        <div class="bunny-prop" id="bunnyProp">🥕</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="lbl"><span>おなか</span><span id="hungerNum"></span></div><div class="bar"><div class="fill" id="hungerBar"></div></div></div>
+    <div class="stat"><div class="lbl"><span>げんき</span><span id="energyNum"></span></div><div class="bar"><div class="fill energy" id="energyBar"></div></div></div>
+    <div class="stat"><div class="lbl"><span>きれい</span><span id="cleanNum"></span></div><div class="bar"><div class="fill clean" id="cleanBar"></div></div></div>
+  </div>
+</div>
+
+<div class="actions">
+  <button class="action" data-action="feed"><span class="ico">🥕</span>ごはん</button>
+  <button class="action" data-action="play"><span class="ico">🎾</span>あそぶ</button>
+  <button class="action" data-action="clean"><span class="ico">🧹</span>そうじ</button>
+  <button class="action" data-action="shop"><span class="ico">🛍️</span>ショップ</button>
+  <button class="action" data-action="more"><span class="ico">✨</span>メニュー</button>
+</div>
+
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+const KEY='fuwamochiRabbitSave_v2';
+const ASSETS={roomSheet:'assets/packed/rooms.webp',outsideSheet:'assets/packed/outside.webp'};
+const ROOM_ORDER=['basic','pink','blue','natural','night','dream','wood','japanese','white','study'];
+const OUTSIDE_ORDER=['garden','flowers','forest','river','hill','beach'];
+const ROOM_LABEL={basic:'ベーシック',pink:'ピンク',blue:'ブルー',natural:'ナチュラル',night:'ナイト',dream:'ゆめかわ',wood:'ログハウス',japanese:'和室',white:'ホワイト',study:'しょさい'};
+const OUTSIDE_LABEL={garden:'おにわ',flowers:'お花ばたけ',forest:'森',river:'川辺',hill:'丘',beach:'ビーチ'};
+const WEATHER_LABEL={sunny:'はれ',cloudy:'くもり',rainy:'あめ',snowy:'ゆき',star:'ほし'};
+const TIME_LABEL={morning:'あさ',day:'ひる',evening:'ゆうがた',night:'よる',late_night:'しんや'};
+const STAGE_INFO=[{id:'baby',label:'あかちゃん',scale:0.92},{id:'child',label:'こども',scale:1.0},{id:'grown',label:'おとな',scale:1.08}];
+const FURNITURE={ball:{label:'ボール',icon:'🎾'},plush:{label:'ぬいぐるみ',icon:'🧸'},plant:{label:'かんようしょくぶつ',icon:'🪴'},tunnel:{label:'トンネル',icon:'🛝'},cushion:{label:'クッション',icon:'🛋️'},lamp:{label:'ランプ',icon:'💡'},book:{label:'えほん',icon:'📘'},none:{label:'なし',icon:'・'}};
+const FOOD={carrot:{label:'にんじん',icon:'🥕',hunger:24,mood:5,growth:1,desc:'いつもの大好物'},apple:{label:'りんご',icon:'🍎',hunger:18,mood:9,growth:.8,desc:'しゃくしゃく甘い'},berry:{label:'ベリー',icon:'🫐',hunger:10,mood:14,growth:.6,desc:'特別なおやつ'}};
+const MASTER_BUNNY='assets/packed/bunny-master.webp';
+const SPRITE_ANIMS=Object.fromEntries(['walk','jump','eat','sleep','happy'].map(name=>[name,`assets/packed/${name}.webp`]));
+const REDUCE_MOTION=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const spriteCache=new Map();
+let spriteRunToken=0;
+function preloadSpriteSet(name){if(spriteCache.has(name))return spriteCache.get(name);const src=SPRITE_ANIMS[name];const promise=new Promise(resolve=>{const im=new Image();im.onload=()=>resolve(src);im.onerror=()=>resolve(src);im.src=src});spriteCache.set(name,promise);return promise}
+async function playSpriteAnimation(name,{fps=10,loops=1,hold=80}={}){const src=SPRITE_ANIMS[name];if(!src||REDUCE_MOTION)return;const token=++spriteRunToken;await preloadSpriteSet(name);if(token!==spriteRunToken)return;els.petArea.classList.add('sprite-playing');els.bunnyImg.style.backgroundImage=`url(${src})`;els.bunnyImg.style.backgroundSize='800% 100%';let index=0;const total=8*Math.max(1,loops);return new Promise(resolve=>{const finish=()=>{if(token===spriteRunToken){els.bunnyImg.style.backgroundImage=`url(${MASTER_BUNNY})`;els.bunnyImg.style.backgroundSize='contain';els.bunnyImg.style.backgroundPosition='center bottom';els.petArea.classList.remove('sprite-playing')}resolve()};const step=()=>{if(token!==spriteRunToken){finish();return}const pos=(index%8)*(100/7);els.bunnyImg.style.backgroundPosition=`${pos}% 100%`;index++;if(index<total)setTimeout(step,1000/fps);else setTimeout(finish,hold)};step()})}
+function stopSpriteAnimation(){spriteRunToken++;els.bunnyImg.style.backgroundImage=`url(${MASTER_BUNNY})`;els.bunnyImg.style.backgroundSize='contain';els.bunnyImg.style.backgroundPosition='center bottom';els.petArea.classList.remove('sprite-playing')}
+const SLOT_STYLE={left:'left:15%;bottom:15%;',center:'left:47%;bottom:15%;transform:translateX(-50%);',right:'right:14%;bottom:17%;',top:'right:10%;top:35%;'};
+const clamp=n=>Math.max(0,Math.min(100,n));
+const todayKey=()=>new Date().toISOString().slice(0,10);
+const baseState={
+  name:'もち',coins:120,hunger:82,energy:88,clean:90,mood:80,bond:5,growth:2,lastSave:Date.now(),lastVisit:todayKey(),days:1,
+  petCount:0,feeds:0,plays:0,cleanCount:0,
+  items:{carrot:5,apple:2,berry:1},
+  owned:['ベッド','ボール'],
+  achievements:[],missions:[],missionDate:'',sound:true,miniBest:0,
+  roomTheme:'basic',outsideTheme:'garden',weather:'sunny',
+  unlockedRooms:['basic','pink','natural'],unlockedOutside:['garden','flowers'],
+  growthXP:0, memories:[{id:'first_day',title:'はじめての出会い',desc:'ふわもちうさぎと出会った。'}],
+  furnitureInventory:['ball','plant'], roomSlots:{left:'plant',center:'ball',right:'none',top:'none'},
+  firstLaunch:true,dailyChestDate:'',discoveredFoods:['carrot'],foodLikes:{carrot:0,apple:0,berry:0},
+  furnitureUses:{},totalActions:0,lastStage:'baby'
+};
+let state=load();
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));return {...baseState,...s,items:{...baseState.items,...(s?.items||{})},unlockedRooms:[...(s?.unlockedRooms||baseState.unlockedRooms)],unlockedOutside:[...(s?.unlockedOutside||baseState.unlockedOutside)],furnitureInventory:[...(s?.furnitureInventory||baseState.furnitureInventory)],memories:[...(s?.memories||baseState.memories)],roomSlots:{...baseState.roomSlots,...(s?.roomSlots||{})},discoveredFoods:[...(s?.discoveredFoods||baseState.discoveredFoods)],foodLikes:{...baseState.foodLikes,...(s?.foodLikes||{})},furnitureUses:{...(s?.furnitureUses||{})}}}catch(e){return {...baseState}}}
+function save(){state.lastSave=Date.now();localStorage.setItem(KEY,JSON.stringify(state))}
+function $(s){return document.querySelector(s)}
+const els={coinBtn:$('#coinBtn'),coins:$('#coins'),hunger:$('#hungerBar'),energy:$('#energyBar'),clean:$('#cleanBar'),hNum:$('#hungerNum'),eNum:$('#energyNum'),cNum:$('#cleanNum'),room:$('#room'),roomBg:$('#roomBg'),outside:$('#outsideView'),timeTint:$('#timeTint'),weatherLayer:$('#weatherLayer'),ambientLayer:$('#ambientLayer'),furnitureLayer:$('#furnitureLayer'),speech:$('#speech'),modal:$('#modal'),sheet:$('#sheet'),toast:$('#toast'),petArea:$('#petArea'),bunnyImg:$('#bunnyImg'),bunnyProp:$('#bunnyProp'),roomChip:$('#roomThemeChip'),weatherChip:$('#weatherChip'),timeChip:$('#timeChip'),nameplate:$('#nameplate'),bunnyAura:$('#bunnyAura')};
+function toast(t){clearTimeout(toast.t);els.toast.textContent=t;els.toast.classList.add('show');toast.t=setTimeout(()=>els.toast.classList.remove('show'),1650)}
+function speak(t){clearTimeout(speak.t);els.speech.textContent=t;els.speech.classList.add('show');speak.t=setTimeout(()=>els.speech.classList.remove('show'),2200)}
+function setBar(bar,num,v){bar.style.width=v+'%';num.textContent=Math.round(v)}
+function getTimeName(){const hr=new Date().getHours();if(hr<5)return 'late_night';if(hr<10)return 'morning';if(hr<17)return 'day';if(hr<20)return 'evening';if(hr<24)return 'night';return 'day'}
+function getStage(){if(state.growthXP>=40)return STAGE_INFO[2];if(state.growthXP>=15)return STAGE_INFO[1];return STAGE_INFO[0]}
+function addMemory(id,title,desc){if(state.memories.some(m=>m.id===id))return;state.memories.push({id,title,desc});toast(`思い出「${title}」`);fx('🌟',6);save()}
+function noteAction(){state.totalActions=(state.totalActions||0)+1;checkGrowthMilestone()}
+function checkGrowthMilestone(){const s=getStage();if(state.lastStage!==s.id){const prev=state.lastStage;state.lastStage=s.id;addMemory('stage_'+s.id,'すくすく成長',state.name+'が'+s.label+'になった！');open(`<h2>🎉 成長したよ！</h2><div class="card"><div style="font-size:64px;text-align:center">🐰✨</div><h3 style="text-align:center">${state.name}は「${s.label}」になりました</h3><p class="small">お世話を続けると、もっといろいろな反応を見せてくれるよ。</p><button onclick="window.closeModal()">やった！</button></div>`);fx('✨',12);save()}}
+function interactFurniture(id){state.furnitureUses[id]=(state.furnitureUses[id]||0)+1;noteAction();if(id==='ball'){animateBunny('playing','🎾');state.mood=clamp(state.mood+6);speak('ころころ〜！')}else if(id==='plush'){animateBunny('happy','🧸');state.mood=clamp(state.mood+5);speak('ぎゅっ')}else if(id==='tunnel'){animateBunny('jump','🛝');state.energy=clamp(state.energy-3);state.mood=clamp(state.mood+7);speak('トンネルたのしい！')}else if(id==='cushion'){animateBunny('sleepy','💤');state.energy=clamp(state.energy+5);speak('ふかふか…')}else if(id==='lamp'){fx('✨',5);speak('あったかいひかり')}else if(id==='plant'){speak('みどり、きれいだね')}else if(id==='book'){animateBunny('surprised','📘');speak('なにがかいてあるの？')}if(state.furnitureUses[id]===5)addMemory('fav_'+id,FURNITURE[id].label+'がお気に入り',FURNITURE[id].label+'で何度も遊んだ。');save();render();checkAchievements()}
+function renderFurniture(){els.furnitureLayer.innerHTML='';Object.entries(state.roomSlots||{}).forEach(([slot,id])=>{if(!id||id==='none'||!FURNITURE[id])return;const d=document.createElement('button');d.className='furniture-item '+id;d.style.cssText=(SLOT_STYLE[slot]||'')+';border:0;background:transparent;pointer-events:auto;cursor:pointer';d.textContent=FURNITURE[id].icon;d.title=FURNITURE[id].label;d.onclick=e=>{e.stopPropagation();interactFurniture(id)};els.furnitureLayer.appendChild(d)})}
+function createAmbient(){if(!els.ambientLayer||els.ambientLayer.childElementCount) return;for(let i=0;i<12;i++){const d=document.createElement('div');d.className='ambient '+(Math.random()<.72?'dot':'heart');const size=(Math.random()*10+6);d.style.left=(Math.random()*100)+'%';d.style.top=(60+Math.random()*35)+'%';d.style.width=size+'px';d.style.height=size+'px';d.style.animationDuration=(10+Math.random()*10)+'s';d.style.animationDelay=(-Math.random()*10)+'s';d.style.opacity=(.18+Math.random()*.35).toFixed(2);els.ambientLayer.appendChild(d)}}
+function updateCuteness(){const stage=getStage();els.nameplate.textContent=`${state.name} ・ ${stage.label}`;const warm=Math.min(1,(state.mood||0)/100);const hue=330+Math.round(warm*12);els.bunnyAura.style.background=`radial-gradient(circle at 50% 45%, hsla(${hue},100%,92%,.92), hsla(${hue},100%,88%,.36) 52%, transparent 72%)`;els.bunnyAura.style.transform=`translateX(-50%) scale(${0.96+warm*.12})`;els.coinBtn.classList.toggle('ready',state.dailyChestDate!==todayKey())}
+function renderEnvironment(){
+  const roomIndex=Math.max(0,ROOM_ORDER.indexOf(state.roomTheme));
+  const roomCol=roomIndex%5, roomRow=Math.floor(roomIndex/5);
+  els.roomBg.style.backgroundImage=`url(${ASSETS.roomSheet})`;
+  els.roomBg.style.backgroundSize='500% 200%';
+  els.roomBg.style.backgroundPosition=`${roomCol*25}% ${roomRow*100}%`;
+  const outIndex=Math.max(0,OUTSIDE_ORDER.indexOf(state.outsideTheme));
+  els.outside.style.backgroundImage=`url(${ASSETS.outsideSheet})`;
+  els.outside.style.backgroundSize='600% 100%';
+  els.outside.style.backgroundPosition=`${outIndex*20}% 0%`;
+  const timeName=getTimeName();
+  els.timeTint.className='time-tint '+timeName;
+  els.room.className='room weather-'+state.weather;
+  els.weatherLayer.className='weather-layer';
+  if(state.weather==='rainy') els.weatherLayer.classList.add('rain');
+  if(state.weather==='snowy') els.weatherLayer.classList.add('snow');
+  if(state.weather==='star') els.weatherLayer.classList.add('sparkle');
+  const stage=getStage();
+  els.bunnyImg.style.width=(220*stage.scale)+'px';els.bunnyImg.style.height=(220*stage.scale)+'px';
+  els.roomChip.textContent=`${ROOM_LABEL[state.roomTheme]||'おへや'}・${stage.label}`;
+  els.weatherChip.textContent=WEATHER_LABEL[state.weather]||'はれ';
+  els.timeChip.textContent=TIME_LABEL[timeName];
+  renderFurniture();
+}
+function render(){
+  els.coins.textContent=state.coins;
+  createAmbient();
+  updateCuteness();
+  setBar(els.hunger,els.hNum,state.hunger);
+  setBar(els.energy,els.eNum,state.energy);
+  setBar(els.clean,els.cNum,state.clean);
+  renderEnvironment();
+}
+function fx(symbol='💗',count=4){for(let i=0;i<count;i++){const d=document.createElement('div');d.className='heart';d.textContent=symbol;d.style.left=(45+Math.random()*10)+'%';d.style.top=(58+Math.random()*10)+'%';d.style.animationDelay=(i*.08)+'s';els.room.appendChild(d);setTimeout(()=>d.remove(),1200)}}
+function animateBunny(mode='happy',prop=''){els.petArea.classList.remove('happy','jump','sleepy','surprised','playing','show-prop');void els.petArea.offsetWidth;if(mode)els.petArea.classList.add(mode);if(prop){els.bunnyProp.textContent=prop;els.petArea.classList.add('show-prop');setTimeout(()=>els.petArea.classList.remove('show-prop'),700)}const spriteMap={happy:'happy',jump:'jump',sleepy:'sleep',playing:'walk'};if(spriteMap[mode])playSpriteAnimation(spriteMap[mode],{fps:mode==='playing'?11:9,loops:1,hold:60});els.bunnyAura.style.filter='blur(14px)';els.bunnyAura.style.opacity='1';setTimeout(()=>{els.petArea.classList.remove('happy','jump','sleepy','surprised','playing');els.bunnyAura.style.filter='blur(12px)';els.bunnyAura.style.opacity='.9'},820)}
+function happy(msg){animateBunny('happy');fx('💗',4);speak(msg)}
+function offlineProgress(){const now=Date.now(),dt=Math.min((now-state.lastSave)/3600000,72);state.hunger=clamp(state.hunger-dt*2.4);state.clean=clamp(state.clean-dt*1.2);state.energy=clamp(state.energy+dt*1.8);if(state.lastVisit!==todayKey()){state.days++;state.lastVisit=todayKey();state.coins+=25;toast('おかえり！ デイリーボーナス +25🪙')}save()}
+function ensureMissions(){if(state.missionDate===todayKey()&&state.missions.length)return;state.missionDate=todayKey();state.missions=[{id:'pet',text:'3回なでる',goal:3,progress:0,reward:12},{id:'feed',text:'ごはんを1回あげる',goal:1,progress:0,reward:10},{id:'play',text:'1回あそぶ',goal:1,progress:0,reward:15}];save()}
+function progressMission(id,n=1){const m=state.missions.find(x=>x.id===id);if(!m||m.progress>=m.goal)return;m.progress=Math.min(m.goal,m.progress+n);if(m.progress>=m.goal){state.coins+=m.reward;toast(`ミッション達成 +${m.reward}🪙`);fx('✨',5)}save();render()}
+function checkAchievements(){const checks=[['pet10','なでなで名人',state.petCount>=10],['feed10','にんじん好き',state.feeds>=10],['play10','遊び仲間',state.plays>=10],['days3','3日いっしょ',state.days>=3],['coin300','おこづかい上手',state.coins>=300],['room3','おへやだいすき',state.unlockedRooms.length>=5],['out3','おそとマスター',state.unlockedOutside.length>=4],['grow1','すくすく成長',state.growthXP>=15],['grow2','りっぱなうさぎ',state.growthXP>=40],['memory3','思い出コレクター',state.memories.length>=4]];for(const [id,name,ok] of checks){if(ok&&!state.achievements.includes(id)){state.achievements.push(id);state.coins+=20;toast(`実績「${name}」+20🪙`);fx('🌟',7)}}save()}
+function feed(){openFoodMenu()}
+function openFoodMenu(){open(`<button class="close" onclick="window.closeModal()">×</button><h2>ごはんをえらぶ</h2><div class="grid">${Object.entries(FOOD).map(([id,f])=>`<div class="card"><div style="font-size:42px">${f.icon}</div><b>${f.label}</b><div class="small">${f.desc}</div><p>もってる：${state.items[id]||0}</p><button onclick="window.feedFood('${id}')">あげる</button></div>`).join('')}</div>`)}
+window.feedFood=id=>{const f=FOOD[id];if(!f)return;if((state.items[id]||0)<=0){toast(f.label+'がないよ');openShop();return}state.items[id]--;state.hunger=clamp(state.hunger+f.hunger);state.mood=clamp(state.mood+f.mood);state.bond+=.4;state.feeds++;state.growthXP+=f.growth;state.foodLikes[id]=(state.foodLikes[id]||0)+1;if(!state.discoveredFoods.includes(id))state.discoveredFoods.push(id);state.coins+=3;noteAction();playSpriteAnimation('eat',{fps:8,loops:1,hold:120});animateBunny('happy',f.icon);happy('もぐもぐ…おいしい！');if(state.feeds===1)addMemory('first_feed','はじめてのごはん',f.label+'をおいしそうに食べた。');if(state.foodLikes[id]===5)addMemory('food_'+id,f.label+'がお気に入り',f.label+'を何度もおいしそうに食べた。');progressMission('feed');checkAchievements();save();render();window.closeModal()}
+function play(){if(state.energy<15){animateBunny('sleepy');speak('ちょっとねむいかも…');return}state.energy=clamp(state.energy-12);state.mood=clamp(state.mood+14);state.hunger=clamp(state.hunger-4);state.plays++;state.growthXP+=1.2;state.coins+=6;noteAction();playSpriteAnimation('walk',{fps:12,loops:2,hold:80});animateBunny('playing','🎾');happy('もっとあそぼ！');if(state.plays===1)addMemory('first_play','はじめて遊んだ日','いっしょに楽しく遊んだ。');progressMission('play');checkAchievements();save();render()}
+function clean(){state.clean=clamp(state.clean+35);state.mood=clamp(state.mood+3);state.cleanCount++;state.coins+=4;noteAction();fx('✨',5);speak('おへや、きれい！');save();render()}
+function brush(){state.clean=clamp(state.clean+18);state.mood=clamp(state.mood+7);state.bond+=.3;state.growthXP+=.4;noteAction();animateBunny('happy','🪮');speak('ふわふわになった！');save();render()}
+function sleepNow(){state.energy=clamp(state.energy+30);state.mood=clamp(state.mood+6);state.growthXP+=.5;playSpriteAnimation('sleep',{fps:6,loops:2,hold:250});animateBunny('sleepy','💤');speak('すやすや…');if(state.energy>=95)addMemory('good_sleep','きもちいいお昼寝','安心してすやすや眠った。');save();render()}
+function shopCard(ico,name,desc,price,id,mode='item'){return `<div class="card"><div style="font-size:34px">${ico}</div><b>${name}</b><div class="small">${desc}</div><button onclick="window.buyAny('${mode}','${id}',${price},'${name}')">${price}🪙で買う</button></div>`}
+function openShop(){open(`<button class="close" onclick="window.closeModal()">×</button><h2>ショップ</h2><div class="grid">
+${shopCard('🥕','にんじん','定番ごはん',15,'carrot')}
+${shopCard('🍎','りんご','ちょっとごほうび',24,'apple')}
+${shopCard('🫐','ベリー','めずらしいおやつ',35,'berry')}
+${shopCard('🎀','ブルールーム','青いおへやを解放',120,'blue','room')}
+${shopCard('🌲','ログハウス','木のおへやを解放',140,'wood','room')}
+${shopCard('🌊','ビーチの景色','海のそと風景を解放',110,'beach','outside')}
+${shopCard('🧸','ぬいぐるみ','おへやに置ける',70,'plush','furniture')}
+${shopCard('🛝','トンネル','うさぎが喜ぶ',95,'tunnel','furniture')}
+${shopCard('💡','ランプ','あたたかい雰囲気',65,'lamp','furniture')}
+</div>`) }
+window.buyAny=(mode,id,price,name)=>{if(state.coins<price){toast('コインが足りないよ');return}
+ if(mode==='item'){state.coins-=price;state.items[id]=(state.items[id]||0)+1}
+ if(mode==='room'){if(state.unlockedRooms.includes(id)){toast('もう持ってるよ');return}state.coins-=price;state.unlockedRooms.push(id)}
+ if(mode==='outside'){if(state.unlockedOutside.includes(id)){toast('もう持ってるよ');return}state.coins-=price;state.unlockedOutside.push(id)}
+ if(mode==='furniture'){if(state.furnitureInventory.includes(id)){toast('もう持ってるよ');return}state.coins-=price;state.furnitureInventory.push(id)}
+ toast(`${name}を手に入れた！`);if(mode==='furniture')addMemory('new_furniture_'+id,'新しい家具','新しい家具を手に入れた。');fx('✨',6);checkAchievements();save();render();openShop()}
+function roomChoice(kind,id,label){const current=(kind==='room'?state.roomTheme:state.outsideTheme)===id;const unlocked=(kind==='room'?state.unlockedRooms:state.unlockedOutside).includes(id);const idx=(kind==='room'?ROOM_ORDER:OUTSIDE_ORDER).indexOf(id);const cols=kind==='room'?5:6;const rows=kind==='room'?2:1;const col=idx%cols,row=Math.floor(idx/cols);const bg=kind==='room'?ASSETS.roomSheet:ASSETS.outsideSheet;const posX=cols===1?0:col*(100/(cols-1));const posY=rows===1?0:row*100;return `<div class="choice ${current?'current':''} ${unlocked?'':'locked'}"><div style="width:100%;aspect-ratio:16/9;border-radius:10px;background-image:url(${bg});background-size:${cols*100}% ${rows*100}%;background-position:${posX}% ${posY}%;background-repeat:no-repeat"></div><div class="cap">${label}</div><button onclick="window.selectTheme('${kind}','${id}')">${unlocked?(current?'つかってる':'これにする'):'未解放'}</button></div>`}
+window.selectTheme=(kind,id)=>{const list=kind==='room'?state.unlockedRooms:state.unlockedOutside;if(!list.includes(id)){toast('ショップで解放してね');return}if(kind==='room')state.roomTheme=id;else state.outsideTheme=id;save();render();openMore()}
+window.setWeather=w=>{state.weather=w;if(w==='rainy')addMemory('rain_day','雨の日','雨の日の景色を眺めた。');save();render();openMore()}
+window.openDecor=()=>{open(`<button class="close" onclick="window.closeModal()">×</button><h2>もようがえ</h2>${['left','center','right','top'].map(slot=>`<div class="card" style="margin-bottom:10px"><b>${slot==='left'?'ひだり':slot==='center'?'まんなか':slot==='right'?'みぎ':'うしろ'} スロット</b><div class="choice-grid">${['none',...state.furnitureInventory].map(id=>`<button class="${state.roomSlots[slot]===id?'':'subbtn'}" onclick="window.setFurniture('${slot}','${id}')">${FURNITURE[id].icon} ${FURNITURE[id].label}</button>`).join('')}</div></div>`).join('')}`)}
+window.setFurniture=(slot,id)=>{state.roomSlots[slot]=id;if(id!=='none')addMemory('decor_'+slot,'模様替え','おへやを少し模様替えした。');save();render();window.openDecor()}
+window.openAlbum=()=>{open(`<button class="close" onclick="window.closeModal()">×</button><h2>思い出アルバム</h2>${state.memories.map(m=>`<div class="card" style="margin-bottom:10px"><b>${m.title}</b><div class="small">${m.desc}</div></div>`).join('')}`)}
+window.changeName=()=>{const name=prompt('うさぎの名前を入力してね',state.name);if(name&&name.trim()){state.name=name.trim().slice(0,12);save();openMore();toast('名前を変えたよ')}}
+function openEncyclopedia(){open(`<button class="close" onclick="window.closeModal()">×</button><h2>ずかん</h2><div class="grid"><div class="card"><b>食べもの図鑑</b>${Object.entries(FOOD).map(([id,f])=>`<p>${state.discoveredFoods.includes(id)?f.icon+' '+f.label+'　♥ '+(state.foodLikes[id]||0):'❔ ？？？'}</p>`).join('')}</div><div class="card"><b>家具図鑑</b>${Object.entries(FURNITURE).filter(([id])=>id!=='none').map(([id,f])=>`<p>${state.furnitureInventory.includes(id)||state.roomSlots&&Object.values(state.roomSlots).includes(id)?f.icon+' '+f.label:'❔ ？？？'}</p>`).join('')}</div></div>`)}
+window.openEncyclopedia=openEncyclopedia;
+window.openBackup=()=>{open(`<button class="close" onclick="window.closeModal()">×</button><h2>セーブデータ</h2><div class="card"><p class="small">端末を変えるときは、セーブデータを書き出して保管できます。</p><button onclick="window.exportSave()">セーブを書き出す</button><button class="subbtn" onclick="document.getElementById('saveImport').click()">セーブを読み込む</button><input id="saveImport" type="file" accept="application/json" style="display:none" onchange="window.importSave(this.files[0])"></div>`)}
+window.exportSave=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='fuwamochi-save.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('セーブを書き出したよ')}
+window.importSave=file=>{if(!file)return;const r=new FileReader();r.onload=()=>{try{const data=JSON.parse(r.result);localStorage.setItem(KEY,JSON.stringify(data));state=load();render();window.closeModal();toast('セーブを読み込んだよ')}catch(e){toast('読み込めなかったよ')}};r.readAsText(file)}
+function showDailyChest(){if(state.dailyChestDate===todayKey())return;open(`<h2>🎁 今日のごほうび</h2><div class="card"><div style="font-size:72px;text-align:center">🎁</div><p style="text-align:center">1日1回のおたのしみ！</p><button onclick="window.claimDailyChest()">あける</button></div>`)}
+window.claimDailyChest=()=>{if(state.dailyChestDate===todayKey()){window.closeModal();return}const rewards=[{coins:25,text:'25コイン'},{coins:40,text:'40コイン'},{item:'apple',qty:1,text:'りんご×1'},{item:'berry',qty:1,text:'ベリー×1'}];const r=rewards[Math.floor(Math.random()*rewards.length)];if(r.coins)state.coins+=r.coins;if(r.item)state.items[r.item]=(state.items[r.item]||0)+r.qty;state.dailyChestDate=todayKey();addMemory('daily_'+todayKey(),'今日のごほうび',r.text+'をもらった。');save();render();window.closeModal();fx('✨',10);toast(r.text+'をゲット！')}
+function openMore(){ensureMissions();const stage=getStage();open(`<button class="close" onclick="window.closeModal()">×</button><h2>${state.name}との暮らし</h2><div class="grid">
+<div class="card"><b>今日のミッション</b>${state.missions.map(m=>`<div class="mission"><span>${m.text}</span><span>${m.progress}/${m.goal}</span></div>`).join('')}</div>
+<div class="card"><b>プロフィール</b><p>せいちょう段階：${stage.label}</p><p>いっしょに ${state.days}日</p><p>なでた回数 ${state.petCount}</p><p>なかよし ${Math.floor(state.bond)}</p><p>成長ポイント ${state.growthXP.toFixed(1)}</p><span class="tag">にんじん ${state.items.carrot||0}</span><span class="tag">りんご ${state.items.apple||0}</span><span class="tag">ベリー ${state.items.berry||0}</span><button onclick="window.changeName()">名前を変える</button></div>
+<div class="card"><b>お世話</b><p class="small">追加のおせわ</p><button onclick="brush()">ブラッシングする</button><button class="subbtn" onclick="sleepNow()">おひるねする</button></div>
+<div class="card"><b>ミニゲーム</b><p class="small">にんじんキャッチ</p><button onclick="window.startMini()">あそぶ</button></div>
+</div>
+<div class="grid" style="margin-top:12px">
+<div class="card"><b>実績</b><p>${state.achievements.length}個みつけたよ</p><p class="small">おへや ${state.unlockedRooms.length} / そと ${state.unlockedOutside.length} / 思い出 ${state.memories.length}</p><button onclick="window.openAlbum()">アルバムを見る</button><button class="subbtn" onclick="window.openEncyclopedia()">ずかんを見る</button></div>
+<div class="card"><b>もようがえ</b><p class="small">家具を置いておへやを飾ろう</p><button onclick="window.openDecor()">家具を配置する</button><button class="subbtn" onclick="window.openBackup()">セーブ管理</button></div>
+</div>
+<div class="card" style="margin-top:12px"><b>おへやをえらぶ</b><div class="choice-grid">${ROOM_ORDER.map(id=>roomChoice('room',id,ROOM_LABEL[id])).join('')}</div></div>
+<div class="card" style="margin-top:12px"><b>そとの景色をえらぶ</b><div class="choice-grid">${OUTSIDE_ORDER.map(id=>roomChoice('outside',id,OUTSIDE_LABEL[id])).join('')}</div></div>
+<div class="card" style="margin-top:12px"><b>おてんき</b><div class="choice-grid">${Object.entries(WEATHER_LABEL).map(([k,v])=>`<button class="${state.weather===k?'':'subbtn'}" onclick="window.setWeather('${k}')">${v}</button>`).join('')}</div></div>`)}
+function open(html){els.sheet.innerHTML=html;els.modal.classList.add('show')}
+window.brush=brush;window.sleepNow=sleepNow;
+window.closeModal=()=>els.modal.classList.remove('show');
+els.modal.addEventListener('click',e=>{if(e.target===els.modal)window.closeModal()})
+window.startMini=()=>{open(`<button class="close" onclick="window.closeModal()">×</button><h2>にんじんキャッチ</h2><div class="score">0</div><div class="mini-area" id="mini"></div><p class="small">20秒でにんじんをタップ！ ベスト ${state.miniBest}</p>`);const area=$('#mini'),scoreEl=document.querySelector('.score');let score=0,alive=true;function spawn(){if(!alive)return;const c=document.createElement('div');c.className='carrot';c.textContent='🥕';c.style.left=(Math.random()*88)+'%';c.style.top=(Math.random()*80)+'%';c.onclick=()=>{score++;scoreEl.textContent=score;c.remove();fx('✨',2)};area.appendChild(c);setTimeout(()=>c.remove(),1200);setTimeout(spawn,420)}spawn();setTimeout(()=>{alive=false;area.innerHTML='';state.miniBest=Math.max(state.miniBest,score);const gain=score*2;state.coins+=gain;toast(`スコア${score}！ +${gain}🪙`);save();render()},20000)}
+function handleAction(a){({feed,play,clean,shop:openShop,more:openMore}[a]||(()=>{}))()}
+document.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>handleAction(b.dataset.action)));
+els.coinBtn.addEventListener('click',()=>{ if(state.dailyChestDate!==todayKey()) showDailyChest(); else openBackup(); });
+let petStart=null,petDistance=0,lastPet=0;els.petArea.addEventListener('pointerdown',e=>{petStart={x:e.clientX,y:e.clientY};petDistance=0;els.petArea.classList.add('petting');els.petArea.setPointerCapture?.(e.pointerId)});els.petArea.addEventListener('pointermove',e=>{if(!petStart)return;petDistance+=Math.hypot(e.clientX-petStart.x,e.clientY-petStart.y);petStart={x:e.clientX,y:e.clientY};if(petDistance>55&&Date.now()-lastPet>550){lastPet=Date.now();petDistance=0;state.petCount++;state.bond+=.25;state.mood=clamp(state.mood+2);state.growthXP+=.35;noteAction();if(state.petCount===1)addMemory('first_pet','はじめてなでた日','なでられてうれしそうだった。');if(state.petCount===25)addMemory('pet25','なでなでの思い出','たくさんなでてもらってごきげん。');fx('💗',2);animateBunny('happy');speak(['えへへ','そこすき！','もっとなでて'][Math.floor(Math.random()*3)]);progressMission('pet');checkAchievements();save()}});['pointerup','pointercancel','pointerleave'].forEach(evt=>els.petArea.addEventListener(evt,()=>{petStart=null;els.petArea.classList.remove('petting')}));
+function idle(){if(els.modal.classList.contains('show'))return;const roll=Math.random();if(roll<.14){playSpriteAnimation('walk',{fps:9,loops:1,hold:50});speak('てくてく…')}else if(roll<.24){playSpriteAnimation('jump',{fps:9,loops:1,hold:60});if(Math.random()<.22)addMemory('big_jump','大ジャンプ！','ぴょーんと大きく跳ねた。')}else if(roll<.36){playSpriteAnimation('happy',{fps:7,loops:1,hold:80})}if(Math.random()<.28){const msgs=['なにしてるの？','ちょっとねむいな','おなかどうかな','そばにいるよ','おへやかわいいね'];speak(msgs[Math.floor(Math.random()*msgs.length)])}}
+setInterval(idle,7600);
+setInterval(()=>{state.hunger=clamp(state.hunger-.5);state.clean=clamp(state.clean-.25);if(state.energy<100)state.energy=clamp(state.energy+.08);save();render()},60000);
+function maybeAutoWeather(){if(Math.random()<.35){const pool=['sunny','cloudy','rainy','snowy','star'];state.weather=pool[Math.floor(Math.random()*pool.length)];if(state.weather==='star')addMemory('star_night','星空の夜','きらきらした夜空を見つめた。');render();save()}}
+setInterval(maybeAutoWeather,1000*60*15);
+function showIntro(){if(!state.firstLaunch)return false;open(`<h2>ふわもちラビットへようこそ</h2><div class="card"><img src="assets/packed/bunny-master.webp" style="width:180px;margin:0 auto" alt="うさぎ"><p style="text-align:center">ちいさなうさぎが、あなたをじっと見ています。</p><p class="small">名前をつけて、一緒に暮らしはじめよう。</p><button onclick="window.beginLife()">この子と暮らす</button></div>`);return true}
+window.beginLife=()=>{const n=prompt('この子の名前は？',state.name);if(n&&n.trim())state.name=n.trim().slice(0,12);state.firstLaunch=false;state.lastStage=getStage().id;save();window.closeModal();render();setTimeout(()=>{happy('よろしくね！');addMemory('named','名前をもらった日',state.name+'という名前になった。')},250)}
+offlineProgress();ensureMissions();render();setTimeout(()=>preloadSpriteSet('happy'),1200);const intro=showIntro();if(!intro){setTimeout(()=>speak('おかえり！'),700);setTimeout(showDailyChest,1400)}window.addEventListener('beforeunload',save);document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
+})();
+</script>
+</body>
+</html>
